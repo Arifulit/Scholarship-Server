@@ -90,7 +90,16 @@ async function run() {
     //   res.send(result)
     //  })
 
-    app.post('/scholarship', verifyToken, async (req, res) => {
+    // get all scholarship
+
+app.get('/scholarship', async (req, res) => {
+  const result = await scholarshipCollection.find().toArray();
+  res.send(result);
+
+})
+
+    app.post('/scholarship', verifyToken,  async (req, res) => {
+
     const scholarship = req.body; // Change 'medicine' to 'scholarship' for consistency
 
     try {
@@ -103,13 +112,58 @@ async function run() {
     }
 });
 
-// get all scholarship
 
-app.get('/scholarship', async (req, res) => {
-  const result = await scholarshipCollection.find().toArray();
-  res.send(result);
 
-})
+// app.post('/scholarship', verifyToken, async (req, res) => {
+//   const scholarship = req.body;
+
+//   // Data validation
+//   const requiredFields = [
+//       "scholarshipName",
+//       "universityName",
+//       "universityLogo",
+//       "universityCountry",
+//       "universityCity",
+//       "universityRank",
+//       "subjectCategory",
+//       "scholarshipCategory",
+//       "degree",
+//       "applicationFees",
+//       "serviceCharge",
+//       "applicationDeadline",
+//       "scholarshipPostDate",
+//       "postedUserEmail"
+//   ];
+
+//   const missingFields = requiredFields.filter(field => !scholarship[field]);
+
+//   if (missingFields.length > 0) {
+//       return res.status(400).send({
+//           message: "Missing required fields",
+//           missingFields,
+//       });
+//   }
+
+//   try {
+//       // Insert scholarship data into MongoDB
+//       const result = await scholarshipCollection.insertOne(scholarship);
+
+//       // Send success response
+//       res.status(200).send({
+//           message: "Scholarship added successfully",
+//           result,
+//       });
+//   } catch (error) {
+//       console.error('Error adding scholarship:', error);
+
+//       // Send error response
+//       res.status(500).send({
+//           message: "Failed to add scholarship",
+//           error: error.message,
+//       });
+//   }
+// });
+
 // get scholarship by id
 app.get('/scholarship/:id', async (req, res) => {
   const { id } = req.params; // Use `id` instead of `_id`
