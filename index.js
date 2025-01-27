@@ -109,27 +109,6 @@ async function run() {
     });
 
 
-    // Payment and Orders Routes
-    // app.post('/create-payment-intent', async (req, res) => {
-    //   const { applicationFee } = req.body;
-    //   const amount = parseInt(applicationFees * 100);
-
-    //   console.log(amount, 'amount inside the intent');
-
-    //   const paymentIntent = await stripe.paymentIntents.create({
-    //     amount: amount,
-    //     currency: 'usd',
-    //     payment_method_types: ['card'],
-    //   });
-
-
-    //  res.send({
-    //   clientSecret: paymentIntent.client_secret
-    //  })
-
-       
-    // });
- 
 
 
 
@@ -247,38 +226,44 @@ async function run() {
     })
     
 
-  app.post('/payments', async (req, res) => {
+
+
+app.post('/payments', verifyToken, async (req, res) => {
+  try {
     const paymentData = req.body;
-    const paymentResult = await paymentCollection.insertOne(paymentData);
- console.log(paymentResult, "payment result")
- 
-    res.send(paymentResult);
-   
 
-  })
+    // Validate required fields
+    if (!paymentData.transactionId || !paymentData.email || !paymentData.Fee) {
+      return res.status(400).send({ message: 'Missing required payment fields.' });
+    }
 
+    // Prepare the payment data to save in the database
+    const payment = {
+      email: paymentData.email,
+      name: paymentData.name,
+      Fee: paymentData.Fee,
+      transactionId: paymentData.transactionId,
+      date: new Date(),
+      status: "pending"  // Or any status you need (e.g., 'completed', 'failed')
+    };
 
+    // Insert payment data into the database
+    const paymentResult = await paymentCollection.insertOne(payment);
 
-    // app.post("/create-payment-intent", async (req, res) => {
-    //   const { price } = req.body;
-    //   const amount = parseInt(price * 100);
-    //   console.log(amount, " amount inside the intent")
-    //   const paymentIntent = await stripe.paymentIntents.create({
-    //     amount: amount,
-    //     currency: "usd",
-    //     payment_method_types: ['card']
-    //   });
+    console.log(paymentResult, 'Payment Result');
 
-    //   res.send({
-    //     clientSecret: paymentIntent.client_secret
-    //   })
-    // })
+    // Respond with success status
+    res.status(201).send(paymentResult);
+  } catch (error) {
+    console.error('Error saving payment:', error);
 
-
-
+    // Respond with error status
+    res.status(500).send({ message: 'Failed to save payment. Please try again later.' });
+  }
+});
     
 
-
+    //appication data save in database
 
     app.post('/order', verifyToken, async (req, res) => {
       const order = req.body;
@@ -291,16 +276,8 @@ async function run() {
       }
     });
 
-    // app.post('/checkout', async (req, res) => {
-    //   const paymentData = req.body;
-    //   try {
-    //     const result = await paymentCollection.insertOne(paymentData);
-    //     res.send(result);
-    //   } catch (error) {
-    //     console.error('Error saving payment data:', error);
-    //     res.status(500).send({ error: 'Failed to save payment data' });
-    //   }
-    // });
+
+
 
     // Authentication Routes
     app.post('/jwt', (req, res) => {
@@ -329,9 +306,6 @@ async function run() {
     });
 
 
-
-
-
   // checkout data save in database
 
   app.get("/checkout/:id", async (req, res) => {
@@ -348,14 +322,25 @@ async function run() {
   })
 
 
-
   app.post('/checkout', async (req, res) => {
-    const checkoutData = req.body;
-    const result = await checkoutCollection.insertOne(checkoutData);
-    res.send(result);
-  })
-
-
+    try {
+      const checkoutData = req.body;
+      
+      // Check for valid data format
+      if (!checkoutData || !checkoutData.id) {
+        return res.status(400).send({ error: "Invalid data format" });
+      }
+  
+      // Insert the checkout data into MongoDB
+      const result = await checkoutCollection.insertOne(checkoutData);
+      
+      // Send the result back to the frontend
+      res.status(200).send(result);
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      res.status(500).send({ error: "Internal Server Error" });
+    }
+  });
 
     app.get('/protected', verifyToken, (req, res) => {
       res.json({ message: 'This is a protected route', user: req.user });
