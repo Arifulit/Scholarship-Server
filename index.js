@@ -64,6 +64,20 @@ async function run() {
     const checkoutCollection = db.collection('checkout');
     const paymentCollection = db.collection('payments');
 
+      // verify admin middleware
+      const verifyAdmin = async (req, res, next) => {
+        // console.log('data from verifyToken middleware--->', req.user?.email)
+        const email = req.user?.email
+        const query = { email }
+        const result = await usersCollection.findOne(query)
+        if (!result || result?.role !== 'admin')
+          return res
+            .status(403)
+            .send({ message: 'Forbidden Access! Admin Only Actions!' })
+  
+        next()
+      }
+
     // User Routes
     app.post('/users/:email', async (req, res) => {
       const email = req.params.email;
@@ -76,6 +90,33 @@ async function run() {
       const result = await usersCollection.insertOne({ ...user, role: 'customer', timestamp: Date.now() });
       res.send(result);
     });
+
+
+      // get all user data
+      app.get('/all-users/:email', verifyToken, verifyAdmin, async (req, res) => {
+        const email = req.params.email
+        const query = { email: { $ne: email } }
+        const result = await usersCollection.find(query).toArray()
+        res.send(result)
+      })
+  
+         // update a user role & status
+    app.patch(
+      '/user/role/:email',
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const email = req.params.email
+        const { role } = req.body
+        const filter = { email }
+        const updateDoc = {
+          $set: { role, status: 'Verified' },
+        }
+        const result = await usersCollection.updateOne(filter, updateDoc)
+        res.send(result)
+      }
+    )
+
 
     // Scholarship Routes
     app.get('/scholarship', async (req, res) => {
