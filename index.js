@@ -1,30 +1,416 @@
 
-require('dotenv').config();
+
+// require('dotenv').config();
+// const express = require('express');
+// const cors = require('cors');
+// const cookieParser = require('cookie-parser');
+// const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+// const jwt = require('jsonwebtoken');
+// const morgan = require('morgan');
+// const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
+
+
+// const app = express();
+// const port = process.env.PORT || 3000;
+
+// // Middleware
+// const corsOptions = {
+//   origin: ['http://localhost:5173', 'http://localhost:5174'],
+//   credentials: true,
+//   optionSuccessStatus: 200,
+// };
+// app.use(cors(corsOptions));
+// app.use(express.json());
+// app.use(cookieParser());
+// app.use(morgan('dev'));
+
+// // Verify JWT Token Middleware
+// const verifyToken = (req, res, next) => {
+//   const token = req.cookies?.token;
+
+//   if (!token) {
+//     return res.status(401).json({ message: 'Unauthorized access' });
+//   }
+
+//   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+//     if (err) {
+//       console.error(err);
+//       return res.status(401).json({ message: 'Unauthorized access' });
+//     }
+//     req.user = decoded;
+//     next();
+//   });
+// };
+
+// // MongoDB Connection URI
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1bdxs.mongodb.net/?retryWrites=true&w=majority`;
+
+// // MongoDB Client
+// const client = new MongoClient(uri, {
+//   serverApi: {
+//     version: ServerApiVersion.v1,
+//     strict: true,
+//     deprecationErrors: true,
+//   },
+// });
+
+// // Main Function to Connect to MongoDB and Define Routes
+// async function run() {
+//   try {
+//     const db = client.db('scholarshipDB');
+//     const usersCollection = db.collection('users');
+//     const scholarshipCollection = db.collection('scholarship');
+//     const ordersCollection = db.collection('orders');
+//     const checkoutCollection = db.collection('checkout');
+//     const paymentCollection = db.collection('payments');
+
+//     // User Routes
+//     app.post('/users/:email', async (req, res) => {
+//       const email = req.params.email;
+//       const query = { email };
+//       const user = req.body;
+//       const existingUser = await usersCollection.findOne(query);
+//       if (existingUser) {
+//         return res.send(existingUser);
+//       }
+//       const result = await usersCollection.insertOne({ ...user, role: 'customer', timestamp: Date.now() });
+//       res.send(result);
+//     });
+
+//     // Scholarship Routes
+//     app.get('/scholarship', async (req, res) => {
+//       const scholarships = await scholarshipCollection.find().toArray();
+//       res.send(scholarships);
+//     });
+
+//     app.post('/scholarship', verifyToken, async (req, res) => {
+//       const scholarship = req.body;
+//       try {
+//         const result = await scholarshipCollection.insertOne(scholarship);
+//         res.status(200).send({ message: 'Scholarship added successfully', result });
+//       } catch (error) {
+//         console.error('Error adding scholarship:', error);
+//         res.status(500).send({ message: 'Failed to add scholarship', error: error.message });
+//       }
+//     });
+
+//     app.get('/scholarship/:id', async (req, res) => {
+//       const { id } = req.params;
+//       try {
+//         const scholarship = await scholarshipCollection.findOne({ _id: new ObjectId(id) });
+//         if (!scholarship) {
+//           return res.status(404).send({ error: 'Scholarship not found' });
+//         }
+//         res.send(scholarship);
+//       } catch (error) {
+//         console.error('Error fetching scholarship details:', error);
+//         res.status(500).send({ error: 'Failed to fetch scholarship details' });
+//       }
+//     });
+
+
+//     // Payment and Orders Routes
+//     // app.post('/create-payment-intent', async (req, res) => {
+//     //   const { applicationFee } = req.body;
+//     //   const amount = parseInt(applicationFees * 100);
+
+//     //   console.log(amount, 'amount inside the intent');
+
+//     //   const paymentIntent = await stripe.paymentIntents.create({
+//     //     amount: amount,
+//     //     currency: 'usd',
+//     //     payment_method_types: ['card'],
+//     //   });
+
+
+//     //  res.send({
+//     //   clientSecret: paymentIntent.client_secret
+//     //  })
+
+       
+//     // });
+ 
+
+
+
+//     // get all orders for a specific customer
+//     app.get('/customer-orders/:email', verifyToken, async (req, res) => {
+//       const email = req.params.email;
+//       const query = { 'applicant.email': email };
+//       const result = await ordersCollection.find(query).toArray();
+//       res.send(result);
+//     });
+//     app.get('/customer-orders/:email', verifyToken, async (req, res) => {
+
+//       const email = req.params.email
+//       const result = await ordersCollection
+//         .aggregate([
+//           {
+//             $match: { 'applicant.email': email }, //Match specific customers data only by email
+//           },
+//           {
+//             $addFields: {
+//               userId: { $toObjectId: '$userId' }, //convert plantId string field to objectId field
+//             },
+//           },
+//           {
+//             $lookup: {
+//               // go to a different collection and look for data
+//               from: 'scholarship', // collection name
+//               localField: 'userId', // local data that you want to match
+//               foreignField: '_id', // foreign field name of that same data
+//               as: 'scholarship', // return the data as plants array (array naming)
+//             },
+//           },
+//           { $unwind: '$scholarship' }, // unwind lookup result, return without array
+//           {
+//             $addFields: {
+//               // add these fields in order object
+//               name: '$scholarship.name',
+//               image: '$scholarship.image',
+//               category: '$scholarship.category',
+//             },
+//           },
+//           {
+//             // remove plants object property from order object
+//             $project: {
+//               scholarship: 0,
+//             },
+//           },
+//         ])
+//         .toArray()
+
+//       res.send(result)
+//     })
+
+
+
+
+
+
+
+
+
+//     // Cancel/delete an order
+//     app.delete('/orders/:id', verifyToken, async (req, res) => {
+
+//       const id = req.params.id
+//       const query = { _id: new ObjectId(id) }
+//       const order = await ordersCollection.findOne(query)
+//       if (order.status === 'Delivered')
+//         return res
+//           .status(409)
+//           .send('Cannot cancel once the product is delivered!')
+//       const result = await ordersCollection.deleteOne(query)
+//       res.send(result)
+//     })
+
+  
+
+  
+    
+  
+    
+
+//     app.post("/create-payment-intent", async (req, res) => {
+//       try {
+//         const { fee } = req.body; // Use `fee` as your field name
+//         if (!fee) {
+//           return res.status(400).send({ error: "Fee is required" });
+//         }
+    
+//         const amount = Math.round(fee * 100); // Convert to smallest currency unit (cents)
+//         console.log("Amount for Payment Intent:", amount);
+    
+//         const paymentIntent = await stripe.paymentIntents.create({
+//           amount: amount,
+//           currency: "usd",
+//           payment_method_types: ["card"],
+//         });
+    
+//         res.send({
+//           clientSecret: paymentIntent.client_secret,
+//         });
+//       } catch (error) {
+//         console.error("Error creating payment intent:", error);
+//         res.status(500).send({ error: "Internal Server Error" });
+//       }
+//     });
+    
+//     app.get('/payments/:email',verifyToken, async (req, res) => {
+//       const email = req.params.email;
+//       if(req.params.email !== req.user.email){
+//         return res.status(403).send({message: 'Forbidden access'})
+//       }
+//       const result = await paymentCollection.find(query).toArray();
+//       res.send(result);
+//     })
+    
+
+//   app.post('/payments', async (req, res) => {
+//     const paymentData = req.body;
+//     const paymentResult = await paymentCollection.insertOne(paymentData);
+//  console.log(paymentResult, "payment result")
+ 
+//     res.send(paymentResult);
+   
+
+//   })
+
+
+
+//     // app.post("/create-payment-intent", async (req, res) => {
+//     //   const { price } = req.body;
+//     //   const amount = parseInt(price * 100);
+//     //   console.log(amount, " amount inside the intent")
+//     //   const paymentIntent = await stripe.paymentIntents.create({
+//     //     amount: amount,
+//     //     currency: "usd",
+//     //     payment_method_types: ['card']
+//     //   });
+
+//     //   res.send({
+//     //     clientSecret: paymentIntent.client_secret
+//     //   })
+//     // })
+
+
+
+    
+
+
+
+//     app.post('/order', verifyToken, async (req, res) => {
+//       const order = req.body;
+//       try {
+//         const result = await ordersCollection.insertOne(order);
+//         res.send(result);
+//       } catch (error) {
+//         console.error('Error saving order:', error);
+//         res.status(500).send({ error: 'Failed to save order' });
+//       }
+//     });
+
+//     // app.post('/checkout', async (req, res) => {
+//     //   const paymentData = req.body;
+//     //   try {
+//     //     const result = await paymentCollection.insertOne(paymentData);
+//     //     res.send(result);
+//     //   } catch (error) {
+//     //     console.error('Error saving payment data:', error);
+//     //     res.status(500).send({ error: 'Failed to save payment data' });
+//     //   }
+//     // });
+
+//     // Authentication Routes
+//     app.post('/jwt', (req, res) => {
+//       const { email } = req.body;
+//       if (!email) {
+//         return res.status(400).json({ message: 'Email is required' });
+//       }
+//       const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
+//       res
+//         .cookie('token', token, {
+//           httpOnly: true,
+//           secure: process.env.NODE_ENV === 'production',
+//           sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+//         })
+//         .json({ success: true, token });
+//     });
+
+//     app.post('/logout', (req, res) => {
+//       res
+//         .clearCookie('token', {
+//           httpOnly: true,
+//           secure: process.env.NODE_ENV === 'production',
+//           sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+//         })
+//         .json({ success: true });
+//     });
+
+
+
+
+
+//   // checkout data save in database
+
+//   app.get("/checkout/:id", async (req, res) => {
+//     const id = req.params.id;
+//     const query = { id: id };
+//     const result = await checkoutCollection.findOne(query);
+//     res.send(result)
+//   })
+
+
+//   app.get("/checkout", async (req, res) => {
+//     const result = await checkoutCollection.find().toArray()
+//     res.send(result)
+//   })
+
+
+
+//   app.post('/checkout', async (req, res) => {
+//     const checkoutData = req.body;
+//     const result = await checkoutCollection.insertOne(checkoutData);
+//     res.send(result);
+//   })
+
+
+
+//     app.get('/protected', verifyToken, (req, res) => {
+//       res.json({ message: 'This is a protected route', user: req.user });
+//     });
+
+//     // Ping MongoDB
+//     await client.db('admin').command({ ping: 1 });
+//     console.log('Successfully connected to MongoDB!');
+//   } catch (error) {
+//     console.error('Error connecting to MongoDB:', error.message);
+//   }
+// }
+
+// run().catch(console.dir);
+
+// // Root Route
+// app.get('/', (req, res) => {
+//   res.send('Hello from Scholarship Server!');
+// });
+
+// // Start Server
+// app.listen(port, () => {
+//   console.log(`Scholarship Server running on port ${port}`);
+// });
+
+
+
+
+
+require('dotenv').config(); // Load environment variables from a .env file
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const morgan = require('morgan');
-const ObjectId = require('mongodb').ObjectId;
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
 
-const port = process.env.PORT || 3000;
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Middleware
+// Middleware configuration
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
-  credentials: true,
+  origin: ['http://localhost:5173', 'http://localhost:5174'], // Allowed origins
+  credentials: true, // Allow cookies to be sent with requests
   optionSuccessStatus: 200,
 };
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(cookieParser());
-app.use(morgan('dev'));
+app.use(cors(corsOptions)); // Enable CORS
+app.use(express.json()); // Parse JSON request bodies
+app.use(cookieParser()); // Parse cookies
+app.use(morgan('dev')); // Log HTTP requests
 
-// Verify JWT Token Middleware
+// JWT verification middleware
 const verifyToken = (req, res, next) => {
-  const token = req.cookies?.token;
+  const token = req.cookies?.token; // Retrieve token from cookies
 
   if (!token) {
     return res.status(401).json({ message: 'Unauthorized access' });
@@ -35,18 +421,15 @@ const verifyToken = (req, res, next) => {
       console.error(err);
       return res.status(401).json({ message: 'Unauthorized access' });
     }
-    req.user = decoded;
+    req.user = decoded; // Attach decoded user data to request
     next();
   });
 };
 
-// MongoDB Connection URI
-// const uri = mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1bdxs.mongodb.net/?retryWrites=true&w=majority;
+// MongoDB connection URI
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1bdxs.mongodb.net/?retryWrites=true&w=majority`;
 
- const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1bdxs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
-
-// MongoDB Client
+// Initialize MongoDB client
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -55,142 +438,113 @@ const client = new MongoClient(uri, {
   },
 });
 
-// Main Function to Connect to MongoDB and Define Routes
+// Main function to handle database connection and routes
 async function run() {
   try {
+    // Define MongoDB collections
     const db = client.db('scholarshipDB');
     const usersCollection = db.collection('users');
-    const scholarshipCollection = db.collection('scholarship')
-  
+    const scholarshipCollection = db.collection('scholarship');
+    const ordersCollection = db.collection('orders');
+    const checkoutCollection = db.collection('checkout');
+    const paymentCollection = db.collection('payments');
 
-
-    // save or update a user in db
-    app.post("/users/:email", async (req, res) => {
+    // ** User Routes **
+    // Add a new user or return existing user details
+    app.post('/users/:email', async (req, res) => {
       const email = req.params.email;
-      const query = { email }
+      const query = { email };
       const user = req.body;
-      // check if user exists in db
-      const isExist = await usersCollection.findOne(query)
-      if(isExist){
-        return res.send(isExist)
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        return res.send(existingUser);
       }
-      const result = await usersCollection.insertOne({
-        ...user,
-        role: "customer",
-        timestamp: Date.now(),
-      })
-      res.send(result)
-    })
+      const result = await usersCollection.insertOne({ ...user, role: 'customer', timestamp: Date.now() });
+      res.send(result);
+    });
 
-// save and all scholarship in DB
+    // ** Scholarship Routes **
+    // Fetch all scholarships
+    app.get('/scholarship', async (req, res) => {
+      const scholarships = await scholarshipCollection.find().toArray();
+      res.send(scholarships);
+    });
 
-    // app.post('/scholarship', verifyToken, async(req,res)=>{
-    //   const medicine = req.body;
-    //   const result = await scholarshipCollection.insertOne(scholarship);
-    //   res.send(result)
-    //  })
-
-    // get all scholarship
-
-app.get('/scholarship', async (req, res) => {
-  const result = await scholarshipCollection.find().toArray();
-  res.send(result);
-
-})
-
-    app.post('/scholarship', verifyToken,  async (req, res) => {
-
-    const scholarship = req.body; // Change 'medicine' to 'scholarship' for consistency
-
-    try {
-        // Insert the scholarship into the MongoDB collection
+    // Add a new scholarship (requires authentication)
+    app.post('/scholarship', verifyToken, async (req, res) => {
+      const scholarship = req.body;
+      try {
         const result = await scholarshipCollection.insertOne(scholarship);
         res.status(200).send({ message: 'Scholarship added successfully', result });
-    } catch (error) {
+      } catch (error) {
         console.error('Error adding scholarship:', error);
         res.status(500).send({ message: 'Failed to add scholarship', error: error.message });
-    }
-});
+      }
+    });
 
+    // Fetch details of a single scholarship by ID
+    app.get('/scholarship/:id', async (req, res) => {
+      const { id } = req.params;
+      try {
+        const scholarship = await scholarshipCollection.findOne({ _id: new ObjectId(id) });
+        if (!scholarship) {
+          return res.status(404).send({ error: 'Scholarship not found' });
+        }
+        res.send(scholarship);
+      } catch (error) {
+        console.error('Error fetching scholarship details:', error);
+        res.status(500).send({ error: 'Failed to fetch scholarship details' });
+      }
+    });
 
+    // ** Orders and Payments **
+    // Fetch orders for a specific customer
+    app.get('/customer-orders/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const query = { 'applicant.email': email };
+      const result = await ordersCollection.find(query).toArray();
+      res.send(result);
+    });
 
-// app.post('/scholarship', verifyToken, async (req, res) => {
-//   const scholarship = req.body;
+    // Cancel an order
+    app.delete('/orders/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const order = await ordersCollection.findOne(query);
+      if (order.status === 'Delivered') {
+        return res.status(409).send('Cannot cancel once the product is delivered!');
+      }
+      const result = await ordersCollection.deleteOne(query);
+      res.send(result);
+    });
 
-//   // Data validation
-//   const requiredFields = [
-//       "scholarshipName",
-//       "universityName",
-//       "universityLogo",
-//       "universityCountry",
-//       "universityCity",
-//       "universityRank",
-//       "subjectCategory",
-//       "scholarshipCategory",
-//       "degree",
-//       "applicationFees",
-//       "serviceCharge",
-//       "applicationDeadline",
-//       "scholarshipPostDate",
-//       "postedUserEmail"
-//   ];
+    // Create a payment intent for Stripe
+    app.post('/create-payment-intent', async (req, res) => {
+      try {
+        const { fee } = req.body;
+        if (!fee) {
+          return res.status(400).send({ error: 'Fee is required' });
+        }
+        const amount = Math.round(fee * 100); // Convert fee to cents
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: 'usd',
+          payment_method_types: ['card'],
+        });
+        res.send({ clientSecret: paymentIntent.client_secret });
+      } catch (error) {
+        console.error('Error creating payment intent:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
+      }
+    });
 
-//   const missingFields = requiredFields.filter(field => !scholarship[field]);
-
-//   if (missingFields.length > 0) {
-//       return res.status(400).send({
-//           message: "Missing required fields",
-//           missingFields,
-//       });
-//   }
-
-//   try {
-//       // Insert scholarship data into MongoDB
-//       const result = await scholarshipCollection.insertOne(scholarship);
-
-//       // Send success response
-//       res.status(200).send({
-//           message: "Scholarship added successfully",
-//           result,
-//       });
-//   } catch (error) {
-//       console.error('Error adding scholarship:', error);
-
-//       // Send error response
-//       res.status(500).send({
-//           message: "Failed to add scholarship",
-//           error: error.message,
-//       });
-//   }
-// });
-
-// get scholarship by id
-app.get('/scholarship/:id', async (req, res) => {
-  const { id } = req.params; // Use `id` instead of `_id`
-  try {
-    const result = await scholarshipCollection.findOne({ _id: new ObjectId(id) });
-    if (!result) {
-      return res.status(404).send({ error: "Scholarship not found" });
-    }
-    res.send(result);
-  } catch (error) {
-    console.error("Error fetching scholarship details:", error);
-    res.status(500).send({ error: "Failed to fetch scholarship details" });
-  }
-});
-
-    // Generate JWT Token
+    // Authentication: Login and Logout
     app.post('/jwt', (req, res) => {
       const { email } = req.body;
-
       if (!email) {
         return res.status(400).json({ message: 'Email is required' });
       }
-
-      const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: '1d',
-      });
-
+      const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
       res
         .cookie('token', token, {
           httpOnly: true,
@@ -200,7 +554,6 @@ app.get('/scholarship/:id', async (req, res) => {
         .json({ success: true, token });
     });
 
-    // Logout Endpoint
     app.post('/logout', (req, res) => {
       res
         .clearCookie('token', {
@@ -211,19 +564,7 @@ app.get('/scholarship/:id', async (req, res) => {
         .json({ success: true });
     });
 
-
- 
-
-
-  
-
-
-    // Example Protected Route
-    app.get('/protected', verifyToken, (req, res) => {
-      res.json({ message: 'This is a protected route', user: req.user });
-    });
-
-    // Ping MongoDB
+    // Test MongoDB connection
     await client.db('admin').command({ ping: 1 });
     console.log('Successfully connected to MongoDB!');
   } catch (error) {
@@ -233,12 +574,12 @@ app.get('/scholarship/:id', async (req, res) => {
 
 run().catch(console.dir);
 
-// Root Route
+// Root route
 app.get('/', (req, res) => {
-  res.send('Hello from plantNet Server!');
+  res.send('Hello from Scholarship Server!');
 });
 
-// Start Server
+// Start the server
 app.listen(port, () => {
-  console.log(`medicine running on port ${port}`);
+  console.log(`Scholarship Server running on port ${port}`);
 });
