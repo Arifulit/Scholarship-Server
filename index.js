@@ -115,7 +115,7 @@ async function run() {
     // get all orders for a specific customer
     app.get('/customer-orders/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
-      const query = { 'applicant.email': email };
+      const query = { 'userEmail': email };
       const result = await ordersCollection.find(query).toArray();
       res.send(result);
     });
