@@ -278,6 +278,16 @@ app.post('/payments', verifyToken, async (req, res) => {
 
 
 
+    //get user role
+
+    app.get('/users/role/:email', async (req, res) => {
+      const email = req.params.email
+      const result = await usersCollection.findOne({ email })
+      res.send({ role: result?.role })
+    })
+
+
+
 
     // Authentication Routes
     app.post('/jwt', (req, res) => {
