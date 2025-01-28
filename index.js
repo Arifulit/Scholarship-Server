@@ -228,6 +228,44 @@ async function run() {
 
 
 
+//delete the scholarship by id
+
+app.delete('/scholarship/:id', verifyToken, async (req, res) => {
+  const id = req.params.id;
+  try {
+    const result = await scholarshipCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Scholarship not found' });
+    }
+    res.status(200).json({ success: true, message: 'Scholarship deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting scholarship:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete scholarship' });
+  }
+});
+
+
+// UPDATE route to update a scholarship by ID
+app.put('/scholarship/:id', async (req, res) => {
+  const id = req.params.id;
+  const updatedData = req.body;
+  try {
+    const result = await scholarshipCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedData }
+    );
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Scholarship not found' });
+    }
+    res.status(200).json({ success: true, message: 'Scholarship updated successfully' });
+  } catch (error) {
+    console.error('Error updating scholarship:', error);
+    res.status(500).json({ success: false, message: 'Failed to update scholarship' });
+  }
+});
+
+
+
 
 
     // get all orders for a specific customer
@@ -303,12 +341,82 @@ async function run() {
       res.send(result)
     })
 
-  
+
+    //update data for a specific order
+    app.put("/orders/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const updatedData = req.body; // Data sent from the client
+    
+      const filter = { _id: new ObjectId(id) };
+    
+      const updateDoc = {
+        $set: {
+          userName: updatedData.userName, // Ensure the field names match
+          universityName: updatedData.universityName,
+          scholarshipCategory: updatedData.scholarshipCategory,
+          subjectCategory: updatedData.subjectCategory,
+          applyingDegree: updatedData.applyingDegree,
+          studyGap: updatedData.studyGap,
+        },
+      };
+    
+      try {
+        const result = await ordersCollection.updateOne(filter, updateDoc);
+    
+        if (result.modifiedCount > 0) {
+          res.send({ message: "Order updated successfully" });
+        } else {
+          res.status(400).send({ message: "No changes detected" });
+        }
+      } catch (error) {
+        console.error("Error updating order:", error);
+        res.status(500).send({ error: "Failed to update order." });
+      }
+    });
+
+
+    //update manage the data for a specific order
+    
+    app.put("/scholarship/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const updatedData = req.body; // Data sent from the client
+    
+      const filter = { _id: new ObjectId(id) };
+    
+      const updateDoc = {
+        $set: {
+          userName: updatedData.userName, // Ensure the field names match
+          universityName: updatedData.universityName,
+          scholarshipCategory: updatedData.scholarshipCategory,
+          subjectCategory: updatedData.subjectCategory,
+          applyingDegree: updatedData.applyingDegree,
+          studyGap: updatedData.studyGap,
+          universityLogo: updatedData.universityLogo,
+          universityCountry: updatedData.universityCountry,
+          degree: updatedData.degree,
+          applicationFees: updatedData.applicationFees,
+          serviceCharge: updatedData.serviceCharge,
+        },
+      };
+    
+      try {
+        const result = await scholarshipCollection.updateOne(filter, updateDoc);
+    
+        if (result.modifiedCount > 0) {
+          res.status(200).send({ message: "Scholarship updated successfully" });
+        } else if (result.matchedCount > 0) {
+          res.status(400).send({ message: "No changes detected" });
+        } else {
+          res.status(404).send({ message: "Scholarship not found" });
+        }
+      } catch (error) {
+        console.error("Error updating scholarship:", error);
+        res.status(500).send({ error: "Failed to update scholarship." });
+      }
+    });
 
   
-    
   
-    
 
     app.post("/create-payment-intent", async (req, res) => {
       try {
