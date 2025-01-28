@@ -15,7 +15,12 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: [
+    'http://localhost:5173', 
+    'https://scholarships-d1fc8.web.app',
+    'https://scholarships-d1fc8.firebaseapp.com',
+
+     ],
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -78,6 +83,20 @@ async function run() {
         next()
       }
 
+        // verify seller middleware
+    const verifySeller = async (req, res, next) => {
+      // console.log('data from verifyToken middleware--->', req.user?.email)
+      const email = req.user?.email
+      const query = { email }
+      const result = await usersCollection.findOne(query)
+      if (!result || result?.role !== 'seller')
+        return res
+          .status(403)
+          .send({ message: 'Forbidden Access! Seller Only Actions!' })
+
+      next()
+    }
+
     // User Routes
     app.post('/users/:email', async (req, res) => {
       const email = req.params.email;
@@ -90,7 +109,25 @@ async function run() {
       const result = await usersCollection.insertOne({ ...user, role: 'customer', timestamp: Date.now() });
       res.send(result);
     });
+    
+     // get appliled  data for moderator
+     app.get('/scholar/moderator',   async (req, res) => {
+      const result = await ordersCollection 
+        .find()
+        .toArray()
+      res.send(result)
+    })
 
+      // Update status or feedback
+      app.patch('/scholar/moderator/:id', async (req, res) => {
+        const { id } = req.params;
+        const updateData = req.body;
+        const result = await ordersCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+        res.send(result);
+      });
 
       // get all user data
       app.get('/all-users/:email', verifyToken, verifyAdmin, async (req, res) => {
@@ -100,7 +137,7 @@ async function run() {
         res.send(result)
       })
   
-         // update a user role & status
+  // update a user role & status
     app.patch(
       '/user/role/:email',
       verifyToken,
@@ -116,6 +153,46 @@ async function run() {
         res.send(result)
       }
     )
+
+
+
+
+        // manage user status and role
+        app.patch('/users/:email', verifyToken, async (req, res) => {
+          const email = req.params.email
+          const query = { email }
+          const user = await usersCollection.findOne(query)
+          if (!user || user?.status === 'Requested')
+            return res
+              .status(400)
+              .send('You have already requested, wait for some time.')
+    
+          const updateDoc = {
+            $set: {
+              status: 'Requested',
+            },
+          }
+          const result = await usersCollection.updateOne(query, updateDoc)
+          console.log(result)
+          res.send(result)
+        })
+
+
+
+
+     // update a order status
+    app.get('/orders/:id', async (req, res) => {
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id) }
+      const result = await ordersCollection.findOne(filter)
+      res.send(result)
+    })
+
+    app.get('/orders', async (req, res) => {
+      const order = await ordersCollection.find().toArray();
+      res.send(order);
+    });
+
 
 
     // Scholarship Routes
@@ -160,6 +237,7 @@ async function run() {
       const result = await ordersCollection.find(query).toArray();
       res.send(result);
     });
+
     app.get('/customer-orders/:email', verifyToken, async (req, res) => {
 
       const email = req.params.email
