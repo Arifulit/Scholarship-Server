@@ -187,7 +187,8 @@ async function run() {
       const result = await ordersCollection.findOne(filter)
       res.send(result)
     })
-
+   
+    //get all orders data
     app.get('/orders', async (req, res) => {
       const order = await ordersCollection.find().toArray();
       res.send(order);
@@ -265,9 +266,6 @@ app.put('/scholarship/:id', async (req, res) => {
 });
 
 
-
-
-
     // get all orders for a specific customer
     app.get('/customer-orders/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
@@ -318,12 +316,6 @@ app.put('/scholarship/:id', async (req, res) => {
 
       res.send(result)
     })
-
-
-
-
-
-
 
 
 
