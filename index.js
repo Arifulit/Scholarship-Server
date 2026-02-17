@@ -17,7 +17,8 @@ const port = process.env.PORT || 3000;
 const corsOptions = {
   origin: [
     'http://localhost:5173', 
-    'https://scholarships-d1fc8.web.app',
+    'https://scholarship-client-weld.vercel.app',
+    // 'https://scholarship-client-kxioem17e-ariful-islams-projects-385fd6b5.vercel.app'
     'https://scholarships-d1fc8.firebaseapp.com',
 
      ],
@@ -106,7 +107,7 @@ async function run() {
       if (existingUser) {
         return res.send(existingUser);
       }
-      const result = await usersCollection.insertOne({ ...user, role: 'customer', timestamp: Date.now() });
+      const result = await usersCollection.insertOne({ ...user, role: 'student', timestamp: Date.now() });
       res.send(result);
     });
     
@@ -266,21 +267,21 @@ app.put('/scholarship/:id', async (req, res) => {
 });
 
 
-    // get all orders for a specific customer
-    app.get('/customer-orders/:email', verifyToken, async (req, res) => {
+    // get all orders for a specific student
+    app.get('/student-orders/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { 'userEmail': email };
       const result = await ordersCollection.find(query).toArray();
       res.send(result);
     });
 
-    app.get('/customer-orders/:email', verifyToken, async (req, res) => {
+    app.get('/student-orders/:email', verifyToken, async (req, res) => {
 
       const email = req.params.email
       const result = await ordersCollection
         .aggregate([
           {
-            $match: { 'applicant.email': email }, //Match specific customers data only by email
+            $match: { 'applicant.email': email }, //Match specific students data only by email
           },
           {
             $addFields: {
